@@ -1,19 +1,38 @@
+import { AntDesign } from "@expo/vector-icons";
+import { withObservables } from "@nozbe/watermelondb/react";
 import { StyleSheet, Text, View } from "react-native";
+import database from "../db";
 import Account from "../model/Account";
 
 type AccountListItem = {
   account: Account;
 };
 
-export default function AccountListItem({ account }: AccountListItem) {
+function AccountListItem({ account }: AccountListItem) {
+  const onDelete = async () => {
+    await database.write(async () => {
+      await account.markAsDeleted();
+    });
+  };
+
   return (
     <View style={styles.container}>
       <Text style={styles.name}>{account.name}</Text>
       <Text style={styles.percentage}>{account.cap}%</Text>
       <Text style={styles.percentage}>{account.tap}%</Text>
+      <AntDesign name="delete" size={18} color="gray" onPress={onDelete} />
     </View>
   );
 }
+
+const enhance = withObservables(
+  ["account"],
+  ({ account }: AccountListItem) => ({
+    account,
+  })
+);
+
+export default enhance(AccountListItem);
 
 const styles = StyleSheet.create({
   container: {
@@ -26,6 +45,9 @@ const styles = StyleSheet.create({
   name: {
     fontWeight: "bold",
     fontSize: 16,
+    flex: 1,
   },
-  percentage: {},
+  percentage: {
+    flex: 1,
+  },
 });
